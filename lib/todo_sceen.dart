@@ -4,7 +4,6 @@ import "package:todo_app/widgets/todo_tile.dart";
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
 class TodoScreen extends StatefulWidget {
   const TodoScreen({super.key});
 
@@ -16,31 +15,25 @@ class _TodoScreenState extends State<TodoScreen> {
   final List<Todo> todos = [];
   final TextEditingController controller = TextEditingController();
 
-Future<void> saveTodos() async {
-  final prefs = await SharedPreferences.getInstance();
+  Future<void> saveTodos() async {
+    final prefs = await SharedPreferences.getInstance();
 
-  final todosJson = todos
-      .map((todo) => jsonEncode(todo.toJson()))
-      .toList();
+    final todosJson = todos.map((todo) => jsonEncode(todo.toJson())).toList();
 
-  await prefs.setStringList('todos', todosJson);
-}
+    await prefs.setStringList('todos', todosJson);
+  }
 
-Future<void> loadTodos() async {
-  final prefs = await SharedPreferences.getInstance();
-  final todosJson = prefs.getStringList('todos');
+  Future<void> loadTodos() async {
+    final prefs = await SharedPreferences.getInstance();
+    final todosJson = prefs.getStringList('todos');
 
-  if (todosJson == null) return;
+    if (todosJson == null) return;
 
-  setState(() {
-    todos.clear();
-    todos.addAll(
-      todosJson.map(
-        (item) => Todo.fromJson(jsonDecode(item)),
-      ),
-    );
-  });
-}
+    setState(() {
+      todos.clear();
+      todos.addAll(todosJson.map((item) => Todo.fromJson(jsonDecode(item))));
+    });
+  }
 
   void addTodo() {
     final text = controller.text.trim();
@@ -63,10 +56,15 @@ Future<void> loadTodos() async {
     saveTodos();
   }
 
-  
+  void onToggle(int index, bool? value) {
+    setState(() {
+      todos[index].isDone = value!;
+    });
+
+    saveTodos();
+  }
 
   @override
-
   void initState() {
     super.initState();
     loadTodos();
@@ -107,12 +105,7 @@ Future<void> loadTodos() async {
                         return TodoTile(
                           todo: todos[index],
                           onDelete: () => removeTodo(index),
-                          onToggle: (value) {
-                            setState((){
-                              todos[index].isDone = value!;
-                            });
-                          saveTodos();
-                          },
+                          onToggle: (value) => onToggle(index, value),
                         );
                       },
                     ),
