@@ -1,8 +1,15 @@
 import "package:flutter/material.dart";
 import "package:todo_app/models/todo.dart";
+import "package:todo_app/widgets/filter_button.dart";
 import "package:todo_app/widgets/todo_tile.dart";
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+
+enum TodoFilter {
+  all,
+  completed,
+  active,
+}
 
 class TodoScreen extends StatefulWidget {
   const TodoScreen({super.key});
@@ -14,6 +21,19 @@ class TodoScreen extends StatefulWidget {
 class _TodoScreenState extends State<TodoScreen> {
   final List<Todo> todos = [];
   final TextEditingController controller = TextEditingController();
+  TodoFilter selectedFilter = TodoFilter.all;
+
+  List<Todo> get filteredTodos {
+    switch (selectedFilter) {
+      case TodoFilter.active:
+        return todos.where((todo) => !todo.isDone).toList();
+      case TodoFilter.completed:
+        return todos.where((todo) => todo.isDone).toList();
+      case TodoFilter.all:
+      default:
+        return todos;
+    }
+  }
 
   Future<void> saveTodos() async {
     final prefs = await SharedPreferences.getInstance();
@@ -78,6 +98,38 @@ class _TodoScreenState extends State<TodoScreen> {
         child: Column(
           children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                FilterButton(
+                  title: 'Все',
+                  isActive: selectedFilter == TodoFilter.all,
+                  onTap: () {
+                    setState(() {
+                      selectedFilter = TodoFilter.all;
+                    });
+                  },
+                ),
+                FilterButton(
+                  title: 'Активные',
+                  isActive: selectedFilter == TodoFilter.active,
+                  onTap: () {
+                    setState(() {
+                      selectedFilter = TodoFilter.active;
+                    });
+                  },
+                ),
+                FilterButton(
+                  title: 'Выполненные',
+                  isActive: selectedFilter == TodoFilter.completed,
+                  onTap: () {
+                    setState(() {
+                      selectedFilter = TodoFilter.completed;
+                    });
+                  },
+                ),
+              ],
+            ),
+            Row(
               children: [
                 Expanded(
                   child: TextField(
@@ -100,12 +152,15 @@ class _TodoScreenState extends State<TodoScreen> {
               child: todos.isEmpty
                   ? const Center(child: Text('Задач пока нет'))
                   : ListView.builder(
-                      itemCount: todos.length,
+                      itemCount: filteredTodos.length,
                       itemBuilder: (context, index) {
+                        final todo = filteredTodos[index];
+                        final realIndex = todos.indexOf(todo);
+
                         return TodoTile(
-                          todo: todos[index],
-                          onDelete: () => removeTodo(index),
-                          onToggle: (value) => onToggle(index, value),
+                          todo: todo,
+                          onDelete: () => removeTodo(realIndex),
+                          onToggle: (value) => onToggle(realIndex, value),
                         );
                       },
                     ),
@@ -116,3 +171,4 @@ class _TodoScreenState extends State<TodoScreen> {
     );
   }
 }
+
