@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'todo_sceen.dart';
+import 'package:todo_app/pages/home_page.dart';
+
 
 void main(){
   runApp(const Myapp());
@@ -13,10 +14,7 @@ class Myapp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('App bar title: Todo App'),
-        ),
-        body: Center(child: TodoScreen()),
+        body: Center(child: HomePage()),
       ),
     );
   }
